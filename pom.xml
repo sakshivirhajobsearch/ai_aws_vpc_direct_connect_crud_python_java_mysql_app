@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.ai.aws.vpc.direct.connect</groupId>
-	<artifactId>ai_aws_vpc_direct_connect_crud_python_java</artifactId>
+	<artifactId>ai_aws_vpc_direct_connect_crud_python_java_mysql</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
