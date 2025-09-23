@@ -1,6 +1,9 @@
+# vpc_direct_connect_ai.py
+
 import boto3
 import pymysql
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
+from ai_analyzer import analyze_vpcs, analyze_direct_connections
 
 # === Configuration ===
 AWS_REGION = 'ap-south-1'
@@ -27,7 +30,7 @@ def fetch_vpcs():
 # === Fetch Direct Connect Data ===
 def fetch_direct_connections():
     try:
-        dc = boto3.client('directconnect')  # No region needed for Direct Connect
+        dc = boto3.client('directconnect')
         response = dc.describe_connections()
         connections = response.get('connections', [])
         print(f"✅ Fetched {len(connections)} Direct Connect connection(s).")
@@ -38,7 +41,7 @@ def fetch_direct_connections():
         print(f"❌ AWS Direct Connect fetch error: {e}")
         return []
 
-# === Insert into MySQL ===
+# === Insert Data into MySQL ===
 def insert_into_mysql(vpcs, connections):
     try:
         conn = pymysql.connect(
@@ -91,4 +94,6 @@ if __name__ == '__main__':
         print("⚠️ No data fetched from AWS. Nothing to insert.")
     else:
         insert_into_mysql(vpc_data, direct_connect_data)
-        print("✅ All available data inserted into MySQL.")
+        analyze_vpcs(vpc_data)
+        analyze_direct_connections(direct_connect_data)
+        print("\n✅ All available data processed and inserted into MySQL.")
