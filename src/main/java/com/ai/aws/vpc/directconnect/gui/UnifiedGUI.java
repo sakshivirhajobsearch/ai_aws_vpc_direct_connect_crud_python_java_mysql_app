@@ -1,4 +1,4 @@
-package com.ai.aws.vpc.directconnect.controller;
+package com.ai.aws.vpc.directconnect.gui;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -30,11 +30,13 @@ public class UnifiedGUI extends JFrame {
 
 	public UnifiedGUI() {
 		repository = new VPCRepository();
+
 		setTitle("AWS VPC + Direct Connect Viewer with AI Insights");
 		setSize(1000, 700);
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
+		// Tables
 		JPanel tablePanel = new JPanel(new GridLayout(2, 1));
 
 		vpcTable = new JTable();
@@ -49,6 +51,7 @@ public class UnifiedGUI extends JFrame {
 		tablePanel.add(vpcScroll);
 		tablePanel.add(dcScroll);
 
+		// AI Output Area
 		aiTextArea = new JTextArea(8, 50);
 		aiTextArea.setEditable(false);
 		aiTextArea.setLineWrap(true);
@@ -56,7 +59,8 @@ public class UnifiedGUI extends JFrame {
 		JScrollPane aiScroll = new JScrollPane(aiTextArea);
 		aiScroll.setBorder(BorderFactory.createTitledBorder("AI Analysis"));
 
-		JButton refreshBtn = new JButton("Refresh Data");
+		// Refresh Button
+		JButton refreshBtn = new JButton("Refresh Data & AI Insights");
 		refreshBtn.addActionListener(this::refreshData);
 
 		JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -66,7 +70,9 @@ public class UnifiedGUI extends JFrame {
 		add(tablePanel, BorderLayout.CENTER);
 		add(bottomPanel, BorderLayout.SOUTH);
 
+		// Initial data load
 		refreshData(null);
+
 		setVisible(true);
 	}
 
@@ -90,38 +96,40 @@ public class UnifiedGUI extends JFrame {
 		}
 		dcTable.setModel(dcModel);
 
-		// AI Insights
-		StringBuilder ai = new StringBuilder("🤖 AI Analysis:\n\n");
+		// Run AI analysis
+		StringBuilder aiReport = new StringBuilder("🤖 AI Analysis:\n\n");
 
-		for (VPC v : vpcs) {
-			if (!v.getCidrBlock().startsWith("10.") && !v.getCidrBlock().startsWith("192.168.")
-					&& !v.getCidrBlock().startsWith("172.16.") && !v.getCidrBlock().startsWith("172.31.")) {
-				ai.append("🔍 ").append(v.getVpcId()).append(" has uncommon CIDR block: ").append(v.getCidrBlock())
-						.append("\n");
+		// VPC AI logic
+		for (VPC vpc : vpcs) {
+			if (!vpc.getCidrBlock().startsWith("10.") && !vpc.getCidrBlock().startsWith("192.168.")
+					&& !vpc.getCidrBlock().startsWith("172.16.") && !vpc.getCidrBlock().startsWith("172.31.")) {
+				aiReport.append("🔍 ").append(vpc.getVpcId()).append(" has uncommon CIDR block: ")
+						.append(vpc.getCidrBlock()).append("\n");
 			}
-			if (!v.getState().equalsIgnoreCase("available")) {
-				ai.append("⚠️ ").append(v.getVpcId()).append(" is not in available state: ").append(v.getState())
-						.append("\n");
+			if (!vpc.getState().equalsIgnoreCase("available")) {
+				aiReport.append("⚠️ ").append(vpc.getVpcId()).append(" is not in 'available' state (current: ")
+						.append(vpc.getState()).append(")\n");
 			}
 		}
 
+		// Direct Connect AI logic
 		for (DirectConnect dc : dcs) {
 			if (dc.getLocation() == null || dc.getLocation().isBlank()) {
-				ai.append("📍 ").append(dc.getConnectionId()).append(" has no assigned location.\n");
+				aiReport.append("📍 ").append(dc.getConnectionId()).append(" has no assigned location.\n");
 			}
 			if (!dc.getBandwidth().matches("1Gbps|10Gbps|100Gbps")) {
-				ai.append("📉 ").append(dc.getConnectionId()).append(" has unsupported bandwidth: ")
+				aiReport.append("📉 ").append(dc.getConnectionId()).append(" has unsupported bandwidth: ")
 						.append(dc.getBandwidth()).append("\n");
 			}
 		}
 
 		if (vpcs.isEmpty() && dcs.isEmpty()) {
-			ai.append("⚠️ No data found. Please fetch data first.");
-		} else if (ai.toString().equals("🤖 AI Analysis:\n\n")) {
-			ai.append("✅ All entries look healthy.");
+			aiReport.append("⚠️ No data found. Please fetch data first.");
+		} else if (aiReport.toString().equals("🤖 AI Analysis:\n\n")) {
+			aiReport.append("✅ All entries appear healthy.");
 		}
 
-		aiTextArea.setText(ai.toString());
+		aiTextArea.setText(aiReport.toString());
 	}
 
 	public static void main(String[] args) {
